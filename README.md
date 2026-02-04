@@ -1,7 +1,7 @@
 # Linux Firewall Hardening & Traffic Control Lab (iptables)
 
 ## Overview
-This project documents a hands-on defensive security lab focused on host-based firewalling using **iptables** on a Linux system. A two-VM VirtualBox environment was used to simulate attacker-to-target traffic and validate firewall behavior through controlled testing, logging, and rule inspection.
+This project documents a hands-on defensive security lab focused on host-based firewalling with **iptables** on a Linux system. A two-VM VirtualBox environment was used to simulate attacker-to-target traffic and validate firewall behavior through controlled testing, logging, and rule inspection.
 
 ## Lab Goals
 - Launch a web service on **TCP/8080**
@@ -15,6 +15,7 @@ This project documents a hands-on defensive security lab focused on host-based f
 - **Target VM (VM1):** Kali Linux, `192.168.56.102` (Host-only network: `eth1`)
 - **Attacker VM (VM2):** Kali Linux, `192.168.56.101` (Host-only network: `eth1`)
 - Virtualization: VirtualBox (Host-only network for lab traffic)
+- Network: VirtualBox Host-only (192.168.56.0/24)
 
 ## Service Setup (Target VM)
 A simple HTTP server was used to simulate a network service:
@@ -22,6 +23,7 @@ A simple HTTP server was used to simulate a network service:
 ```bash
 python3 -m http.server 8080 --bind 0.0.0.0
 ```
+Run on target VM to listen on all interfaces.
 
 ## Firewall Policy Summary
 
@@ -29,7 +31,7 @@ The firewall policy implemented in this lab enforces strict access control using
 
 ### Implemented Controls
 - **Port-based filtering:** Controlled access to a web service on TCP port 8080
-- **Source-based filtering:** Explicit denylisting of a simulated attacker host
+- **Source-based filtering:** Explicit denylisting/blacklisting of a simulated attacker host
 - **Protocol-based filtering:** ICMP traffic restricted from attacker source
 - **Logging:** Kernel-level logging of dropped packets for monitoring and analysis
 - **Modular design:** Custom chains used to improve readability and maintainability
@@ -49,7 +51,7 @@ Traffic destined for TCP/8080 is first evaluated against the BLACKLIST chain bef
 ## Final Rule Set
 
 The final firewall rules were captured directly from the running system using:
-- `sudo iptables -S`
+- `iptables -S`
 
 The full rule set is documented in: 
 - `firewall-rules.sh`
@@ -57,6 +59,10 @@ The full rule set is documented in:
 ## Validation & Evidence
 
 Firewall behavior was validated through controlled testing from the attacker VM and inspection on the target VM.
+
+Example commands:
+- `curl --connect-timeout 5 http://192.168.56.102:8080`
+- `ping -c 3 192.168.56.102`
 
 ### Validation Methods
 - Connection attempts to TCP/8080 from attacker host
